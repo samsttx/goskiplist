@@ -25,7 +25,7 @@ import (
 // level i+1 pointers. p equal to 1/4 is a good value from the point
 // of view of speed and space requirements. If variability of running
 // times is a concern, 1/2 is a better value for p.
-const p = 0.25
+const defaultP = 0.5
 
 const DefaultMaxLevel = 32
 
@@ -89,6 +89,7 @@ type SkipList struct {
 	// standard linked list and will not have any of the nice
 	// properties of skip lists (probably not what you want).
 	MaxLevel int
+	p float64
 }
 
 // Len returns the length of s.
@@ -355,7 +356,7 @@ func (s *SkipList) effectiveMaxLevel() int {
 
 // Returns a new random level.
 func (s SkipList) randomLevel() (n int) {
-	for n = 0; n < s.effectiveMaxLevel() && rand.Float64() < p; n++ {
+	for n = 0; n < s.effectiveMaxLevel() && rand.Float64() < s.p; n++ {
 	}
 	return
 }
@@ -504,6 +505,7 @@ func NewCustomMap(lessThan func(l, r interface{}) bool) *SkipList {
 			forward: []*node{nil},
 		},
 		MaxLevel: DefaultMaxLevel,
+		p: defaultP,
 	}
 }
 
@@ -527,10 +529,12 @@ func New() *SkipList {
 }
 
 // NewIntKey returns a SkipList that accepts int keys.
-func NewIntMap() *SkipList {
-	return NewCustomMap(func(l, r interface{}) bool {
+func NewIntMap(custoP float64) *SkipList {
+	s := NewCustomMap(func(l, r interface{}) bool {
 		return l.(int) < r.(int)
 	})
+	s.p = custoP
+	return s
 }
 
 // NewStringMap returns a SkipList that accepts string keys.
